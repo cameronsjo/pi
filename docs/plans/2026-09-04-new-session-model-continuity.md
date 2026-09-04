@@ -2,7 +2,7 @@
 
 ## Goal
 
-Keep Pi's active model and thinking level stable when an extension replaces the current runtime with `ctx.newSession()`, and align Cameron's local OpenAI Codex context metadata with the endpoint's enforced limit so compaction occurs before overflow.
+Keep Pi's active model and thinking level stable when an extension replaces the current runtime with `ctx.newSession()`, and align Cameron's local OpenAI Codex context metadata with each model's verified limit so compaction occurs before overflow.
 
 ## Requirements
 
@@ -23,7 +23,15 @@ Narrow Cameron's `openai-codex.modelOverrides` block to Sol only because the liv
 
 - Fix only `pi-plan-mode`: model loss is caused by generic `ctx.newSession()` runtime reconstruction and affects every extension using that API.
 - Add a model argument to `ctx.newSession()`: preserving current runtime state is the expected default and should not burden every caller.
-- Hard-code GPT model limits in another local file: the generated catalog already reports the endpoint's 272,000-token limit and should remain authoritative.
+- Hard-code unverified GPT model limits in another local file: the generated catalog remains authoritative except for Sol's independently verified 1,050,000-token window.
+
+## Status
+
+Implementation is committed and pushed to `cameronsjo/pi` branch `fix/new-session-model-continuity`. The local model configuration is active. Upstream submission is deferred because `earendil-works/pi` requires a maintainer `lgtm` before Cameron may open a pull request.
+
+## Next Step
+
+Obtain upstream maintainer `lgtm`, then prepare a clean PR branch that excludes the locally required ignored plan file and open the pull request.
 
 ## Checklist
 
