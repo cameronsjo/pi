@@ -193,6 +193,37 @@ export class AgentSessionRuntime {
 		}
 	}
 
+	private async restoreNewSessionModelState(
+		previousModel: AgentSession["model"],
+		previousThinkingLevel: AgentSession["thinkingLevel"],
+	): Promise<void> {
+		if (!previousModel) return;
+
+		const replacementModel = this.services.modelRuntime.getModel(previousModel.provider, previousModel.id);
+		if (!replacementModel) {
+			this._diagnostics.push({
+				type: "warning",
+				message: `Could not preserve model ${previousModel.provider}/${previousModel.id} in the new session because it is unavailable in the replacement runtime.`,
+			});
+			return;
+		}
+
+		try {
+			if (
+				this.session.model?.provider !== replacementModel.provider ||
+				this.session.model.id !== replacementModel.id
+			) {
+				await this.session.setModel(replacementModel);
+			}
+			this.session.setThinkingLevel(previousThinkingLevel);
+		} catch (error: unknown) {
+			this._diagnostics.push({
+				type: "warning",
+				message: `Could not preserve model ${previousModel.provider}/${previousModel.id} in the new session: ${error instanceof Error ? error.message : String(error)}`,
+			});
+		}
+	}
+
 	async switchSession(
 		sessionPath: string,
 		options?: {
@@ -234,6 +265,8 @@ export class AgentSessionRuntime {
 		}
 
 		const previousSessionFile = this.session.sessionFile;
+		const previousModel = this.session.model;
+		const previousThinkingLevel = this.session.thinkingLevel;
 		const sessionDir = this.session.sessionManager.getSessionDir();
 		const sessionManager = this.session.sessionManager.isPersisted()
 			? SessionManager.create(this.cwd, sessionDir)
@@ -251,6 +284,7 @@ export class AgentSessionRuntime {
 				sessionStartEvent: { type: "session_start", reason: "new", previousSessionFile },
 			}),
 		);
+		await this.restoreNewSessionModelState(previousModel, previousThinkingLevel);
 		if (options?.setup) {
 			await options.setup(this.session.sessionManager);
 			this.session.agent.state.messages = this.session.sessionManager.buildSessionContext().messages;

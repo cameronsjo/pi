@@ -39,7 +39,12 @@ describe("AgentSessionRuntime characterization", () => {
 
 	async function createRuntimeForTest(
 		extensionFactory: ExtensionFactory,
-		options?: { cwd?: string; bootstrapModel?: boolean; bootstrapThinkingLevel?: boolean },
+		options?: {
+			cwd?: string;
+			bootstrapModel?: boolean;
+			bootstrapThinkingLevel?: boolean;
+			replacementModelId?: string;
+		},
 	) {
 		const tempDir =
 			options?.cwd ?? join(tmpdir(), `pi-runtime-suite-${Date.now()}-${Math.random().toString(36).slice(2)}`);
@@ -87,17 +92,23 @@ describe("AgentSessionRuntime characterization", () => {
 				noThemes: true,
 			},
 		};
+		let runtimeCreationCount = 0;
 		const createRuntime: CreateAgentSessionRuntimeFactory = async ({ cwd, sessionManager, sessionStartEvent }) => {
 			const services = await createAgentSessionServices({
 				...runtimeOptions,
 				cwd,
 			});
+			const replacementModel =
+				runtimeCreationCount > 0 && options?.replacementModelId
+					? faux.getModel(options.replacementModelId)
+					: runtimeOptions.model;
+			runtimeCreationCount += 1;
 			return {
 				...(await createAgentSessionFromServices({
 					services,
 					sessionManager,
 					sessionStartEvent,
-					model: runtimeOptions.model,
+					model: replacementModel,
 					thinkingLevel: runtimeOptions.thinkingLevel,
 				})),
 				services,
@@ -288,6 +299,17 @@ describe("AgentSessionRuntime characterization", () => {
 			{ type: "session_shutdown", reason: "resume", targetSessionFile: originalSessionFile },
 			{ type: "session_start", reason: "resume", previousSessionFile: secondSessionFile },
 		]);
+	});
+
+	it("preserves the active model and thinking level in a new session", async () => {
+		const { runtime } = await createRuntimeForTest(() => {}, { replacementModelId: "faux-2" });
+		runtime.session.setThinkingLevel("high");
+
+		const result = await runtime.newSession();
+
+		expect(result.cancelled).toBe(false);
+		expect(runtime.session.model?.id).toBe("faux-1");
+		expect(runtime.session.thinkingLevel).toBe("high");
 	});
 
 	it("honors session_before_switch cancellation for new and resume", async () => {
