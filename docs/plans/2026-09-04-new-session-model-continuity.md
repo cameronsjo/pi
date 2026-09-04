@@ -27,11 +27,11 @@ Narrow Cameron's `openai-codex.modelOverrides` block to Sol only because the liv
 
 ## Status
 
-Implementation is committed and pushed to `cameronsjo/pi` branch `fix/new-session-model-continuity`. The local model configuration is active. Upstream submission is deferred because `earendil-works/pi` requires a maintainer `lgtm` before Cameron may open a pull request.
+Implementation is committed and pushed to `cameronsjo/pi` branch `fix/new-session-model-continuity`. The local model configuration is active. A clean two-file PR branch is pushed as `fix/new-session-model-continuity-pr` at `58cc440b7`; upstream submission remains deferred because `earendil-works/pi` requires maintainer `lgtm` and the local non-owned-repository guard blocked `gh pr create`.
 
 ## Next Step
 
-Obtain upstream maintainer `lgtm`, then prepare a clean PR branch that excludes the locally required ignored plan file and open the pull request.
+Cameron should obtain upstream maintainer `lgtm`, then open the prepared comparison at <https://github.com/earendil-works/pi/compare/main...cameronsjo:pi:fix/new-session-model-continuity-pr?expand=1>.
 
 ## Checklist
 
