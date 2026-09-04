@@ -29,6 +29,6 @@ Remove Cameron's complete `openai-codex.modelOverrides` block because every entr
 
 - [x] Add a runtime regression test for model and thinking continuity.
 - [x] Preserve active model and thinking level across `AgentSessionRuntime.newSession()`.
-- [x] Confirm no public API documentation change is needed; this repairs existing `newSession()` continuity, and branch policy excludes changelog edits off `main`.
+- [x] Confirm no public API documentation change is needed; upstream `CONTRIBUTING.md` requires maintainers to add changelog entries.
 - [x] Remove the stale local OpenAI Codex context overrides.
 - [x] Run focused tests, type diagnostics, and effective-model validation.
