@@ -1223,6 +1223,36 @@ describe("TuiAltScreen", () => {
 		tui.stop();
 	});
 
+	it("uses an injected selection style and reapplies it after ANSI resets", async () => {
+		const terminal = new RecordingTerminal(20, 4);
+		const selectionStyle = { start: "\x1b[48;2;72;66;82m", end: "\x1b[49m" };
+		const tui = new TuiAltScreen(terminal, undefined, undefined, { selectionStyle: () => selectionStyle });
+		tui.addChild(new Text("\x1b[1mal\x1b[0mpha", 0, 0));
+		tui.start();
+		await terminal.waitForRender();
+
+		terminal.sendInput("\x1b[<0;1;1M");
+		terminal.sendInput("\x1b[<32;4;1M");
+		await terminal.waitForRender();
+
+		const selectionWrites = terminal.events.filter(
+			(event) => event.type === "write" && event.data.includes(selectionStyle.start),
+		);
+		assert.ok(selectionWrites.length > 0, "selection must apply the injected background");
+		assert.ok(
+			selectionWrites.some(
+				(event) => event.type === "write" && event.data.includes(`\x1b[0m${selectionStyle.start}`),
+			),
+			"selection style must be reapplied after a reset inside the selection",
+		);
+		assert.ok(
+			selectionWrites.every((event) => event.type !== "write" || !event.data.includes("\x1b[7m")),
+			"injected selection style must replace reverse-video",
+		);
+
+		tui.stop();
+	});
+
 	it("uses an injected copySelection handler instead of OSC 52 and reports success", async () => {
 		const terminal = new RecordingTerminal(20, 4);
 		const copied: string[] = [];

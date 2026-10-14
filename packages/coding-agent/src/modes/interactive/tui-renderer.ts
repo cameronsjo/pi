@@ -25,6 +25,7 @@ export function createInteractiveTui(options: InteractiveTuiOptions): TuiMainScr
 		return new TuiAltScreen(terminal, options.showHardwareCursor, options.logDirectory, {
 			searchMatchStyle: (text) => theme.underline(styleSearchMatch(text)),
 			searchCurrentMatchStyle: (text) => theme.bold(theme.inverse(styleSearchMatch(text))),
+			selectionStyle: () => ({ start: theme.getBgAnsi("selectedBg"), end: "\x1b[49m" }),
 			searchNavigationButtonStyle: (text, hovered) => (hovered ? theme.underline(text) : text),
 			scrollToEndIndicator: () => {
 				const shortcut = keyDisplayText("tui.altScreen.bottom");
